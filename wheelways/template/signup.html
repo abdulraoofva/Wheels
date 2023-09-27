@@ -1,0 +1,244 @@
+
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Signup Page</title>
+    <style>
+        body
+         {
+            margin: 0;
+            padding: 0;
+            font-family: Arial, Helvetica, sans-serif;
+            background-image: url('signupimg.jpg'); /* Replace with your own image path */
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+        }
+
+        .signup-container {
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: rgba(255, 255, 255, 0.5);
+            box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.2);
+            border-radius: 5px;
+            text-align: center;
+        }
+
+        .signup-container h2 {
+            margin-bottom: 20px;
+            color: #333;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+
+        .form-group input {
+            width: 80%;
+            padding: 12px;
+            margin-bottom: 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+
+        .error-message {
+            color: #e74c3c;
+            margin-top: 5px;
+            font-size: 12px;
+        }
+
+        .success-message {
+            color: #27ae60;
+            margin-top: 5px;
+            font-size: 12px;
+        }
+
+        .submit-btn {
+            background-color: #333;
+            color: #fff;
+            border: none;
+            border-radius: 5px;
+            padding: 15px 20px;
+            cursor: pointer;
+        }
+
+        @media (max-width: 768px) {
+            .signup-container {
+                max-width: 90%;
+            }
+
+            .form-group input {
+                padding: 10px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <br><br><br><br>
+    <div class="signup-container">
+        
+        <h2>Registration</h2>
+        <form id="signup-form" method="post" action="{% url 'signup' %}">
+
+            <div class="form-group">
+                <label for="email">Email:</label>
+                <input type="email" id="email" name="email" required>
+                <span id="email-error" class="error-message"></span>
+            </div>
+            <div class="form-group">
+                <label for="username">Username:</label>
+                <input type="text" id="username" name="username" required>
+                <span id="username-error" class="error-message"></span>
+            </div>
+
+            <div class="form-group">
+                <label for="license-no">License No:</label>
+                <input type="text" id="license-no" name="license-no" required>
+                <span id="license-no-error" class="error-message"></span>
+            </div>
+            
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+            <div class="form-group">
+                <label for="password">Password:</label>
+                <input type="password" id="password" name="password" required>
+                <span id="password-error" class="error-message"></span>
+            </div>
+            <div class="form-group">
+                <label for="confirm-password">Confirm Password:</label>
+                <input type="password" id="confirm-password" name="confirm-password" required>
+                <span id="confirm-password-error" class="error-message"></span>
+            </div>
+            <button type="submit" class="submit-btn">Sign Up</button>
+            <span id="success-message" class="success-message"></span>
+        </form>
+        
+        <p class="signup">Already have an account? Log in here.<a href="{% url 'login' %}">login</a></p>
+    </div>
+
+    <script>
+        const signupForm = document.getElementById('signup-form');
+        const email = document.getElementById('email');
+        const username = document.getElementById('username');
+        const licenseNo = document.getElementById('license-no');
+        const password = document.getElementById('password');
+        const confirmPassword = document.getElementById('confirm-password');
+        const emailError = document.getElementById('email-error');
+        const usernameError = document.getElementById('username-error');
+        const licenseNoError = document.getElementById('license-no-error');
+        const passwordError = document.getElementById('password-error');
+        const confirmPasswordError = document.getElementById('confirm-password-error');
+        const successMessage = document.getElementById('success-message');
+    
+        // Function to display error messages
+        function showError(input, errorElement, message) {
+            errorElement.textContent = message;
+        }
+    
+        // Function to clear error messages
+        function clearError(errorElement) {
+            errorElement.textContent = '';
+        }
+    
+        // Event listener for email input
+        email.addEventListener('input', function () {
+            clearError(emailError);
+            const emailPattern = /^[a-z0-9._-]+@[a-z0-9.-]+\.[a-z]{2,4}$/;
+            if (!emailPattern.test(email.value)) {
+                showError(email, emailError, 'Invalid email format');
+            }
+        });
+    
+        // Event listener for username input
+        username.addEventListener('input', function () {
+            clearError(usernameError);
+            if (username.value.length < 5) {
+                showError(username, usernameError, 'Username must be at least 5 characters');
+            }
+        });
+        //event listener for licence
+
+
+
+        licenseNo.addEventListener('input', function() { 
+            clearError(licenseNoError);
+            if (licenseNo.value.length < 12) {
+                showError(username, licenseNoError, 'Licenseno must be at least 5 characters');
+            }
+        });
+
+
+        
+        
+
+
+
+
+
+
+
+
+
+
+
+
+    
+        // Event listener for password input
+        password.addEventListener('input', function () {
+            clearError(passwordError);
+            const passwordPattern = /^(?=.*\d)(?=.*[a-z])(?=.*[A-Z])(?=.*[!@#$%^&*()_+])[A-Za-z\d!@#$%^&*()_+]{8,}$/;
+            if (!passwordPattern.test(password.value)) {
+                showError(password, passwordError, 'Password must contain at least one numeric digit, one uppercase letter, one lowercase letter, and one special character, and be at least 8 characters long');
+            }
+        });
+    
+        // Event listener for confirm password input
+        confirmPassword.addEventListener('input', function () {
+            clearError(confirmPasswordError);
+            if (password.value !== confirmPassword.value) {
+                showError(confirmPassword, confirmPasswordError, 'Passwords do not match');
+            }
+        });
+    
+        // Event listener for form submission
+        signupForm.addEventListener('submit', function (e) {
+            e.preventDefault();
+    
+            // Check if there are any error messages still displayed
+            if (emailError.textContent || usernameError.textContent || licenseNoError.textContent || passwordError.textContent || confirmPasswordError.textContent) {
+                return; // Prevent form submission if there are errors
+            }
+    
+            // If all validations pass, show success message
+            successMessage.textContent = 'Registration successful!';
+        });
+    </script>
+    
+</body>
+</html>
