@@ -1,4 +1,4 @@
-
+{% load static %}
 
 <!DOCTYPE html>
 <html lang="en">
@@ -8,7 +8,7 @@
     <title>Signup Page</title>
     <style>
         body
-         {
+        {
             margin: 0;
             padding: 0;
             font-family: Arial, Helvetica, sans-serif;
@@ -40,6 +40,7 @@
         .form-group label {
             display: block;
             font-weight: bold;
+            margin-right:400px;
             margin-bottom: 5px;
         }
 
@@ -60,7 +61,7 @@
         .success-message {
             color: #27ae60;
             margin-top: 5px;
-            font-size: 12px;
+            font-size: 12px.
         }
 
         .submit-btn {
@@ -87,52 +88,42 @@
     <br><br><br><br>
     <div class="signup-container">
         
-        <h2>Registration</h2>
+        <h2>Customer Sign Up</h2>
         <form id="signup-form" method="post" action="{% url 'signup' %}">
 
             <div class="form-group">
-                <label for="email">Email:</label>
-                <input type="email" id="email" name="email" required>
+                <label for="firstname">First Name:</label>
+                <input type="text" id="firstname" name="firstname" required><br>
+                <span id="firstname-error" class="error-message"></span>
+            </div>
+            <div class="form-group">
+                <label for="lastname">Last Name:</label>
+                <input type="text" id="lastname" name="lastname" required><br>
+                <span id="lastname-error" class="error-message"></span>
+            </div>
+            <div class="form-group">
+                <label for="email" style="margin-right:440px !important">Email:</label>
+                <input type="email" id="email" name="email" required><br>
                 <span id="email-error" class="error-message"></span>
             </div>
             <div class="form-group">
-                <label for="username">Username:</label>
-                <input type="text" id="username" name="username" required>
-                <span id="username-error" class="error-message"></span>
+                <label for="phone" style="margin-right:435px !important">Phone:</label>
+                <input type="tel" id="phone" name="phone" pattern="[0-9]{10}" required><br>
+                <span id="phone-error" class="error-message"></span>
             </div>
-
             <div class="form-group">
-                <label for="license-no">License No:</label>
-                <input type="text" id="license-no" name="license-no" required>
-                <span id="license-no-error" class="error-message"></span>
+                <label for="license-number" style="margin-right:370px !important">License Number:</label>
+                <input type="text" id="license-number" name="license-number" required><br>
+                <span id="license-number-error" class="error-message"></span>
             </div>
-            
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
             <div class="form-group">
-                <label for="password">Password:</label>
-                <input type="password" id="password" name="password" required>
+                <label for="password" style="margin-right:410px !important">Password:</label>
+                <input type="password" id="password" name="password" required><br>
                 <span id="password-error" class="error-message"></span>
             </div>
             <div class="form-group">
-                <label for="confirm-password">Confirm Password:</label>
-                <input type="password" id="confirm-password" name="confirm-password" required>
+                <label for="confirm-password" style="margin-right:340px !important">Confirm Password:</label>
+                <input type="password" id="confirm-password" name="confirm-password" required><br>
                 <span id="confirm-password-error" class="error-message"></span>
             </div>
             <button type="submit" class="submit-btn">Sign Up</button>
@@ -144,14 +135,18 @@
 
     <script>
         const signupForm = document.getElementById('signup-form');
+        const firstname = document.getElementById('firstname');
+        const lastname = document.getElementById('lastname');
         const email = document.getElementById('email');
-        const username = document.getElementById('username');
-        const licenseNo = document.getElementById('license-no');
+        const phone = document.getElementById('phone');
+        const licenseNumber = document.getElementById('license-number'); // Changed field ID
         const password = document.getElementById('password');
         const confirmPassword = document.getElementById('confirm-password');
+        const firstnameError = document.getElementById('firstname-error');
+        const lastnameError = document.getElementById('lastname-error');
         const emailError = document.getElementById('email-error');
-        const usernameError = document.getElementById('username-error');
-        const licenseNoError = document.getElementById('license-no-error');
+        const phoneError = document.getElementById('phone-error');
+        const licenseNumberError = document.getElementById('license-number-error'); // Changed error span ID
         const passwordError = document.getElementById('password-error');
         const confirmPasswordError = document.getElementById('confirm-password-error');
         const successMessage = document.getElementById('success-message');
@@ -166,6 +161,24 @@
             errorElement.textContent = '';
         }
     
+        // Event listener for firstname input
+        firstname.addEventListener('input', function () {
+            clearError(firstnameError);
+            const namePattern = /^[A-Za-z ]+$/; // Allow spaces in the name
+            if (!namePattern.test(firstname.value)) {
+                showError(firstname, firstnameError, 'First name should only contain alphabet characters');
+            }
+        });
+
+        // Event listener for lastname input
+        lastname.addEventListener('input', function () {
+            clearError(lastnameError);
+            const namePattern = /^[A-Za-z ]+$/; // Allow spaces in the name
+            if (!namePattern.test(lastname.value)) {
+                showError(lastname, lastnameError, 'Last name should only contain alphabet characters');
+            }
+        });
+
         // Event listener for email input
         email.addEventListener('input', function () {
             clearError(emailError);
@@ -174,41 +187,25 @@
                 showError(email, emailError, 'Invalid email format');
             }
         });
-    
-        // Event listener for username input
-        username.addEventListener('input', function () {
-            clearError(usernameError);
-            if (username.value.length < 5) {
-                showError(username, usernameError, 'Username must be at least 5 characters');
-            }
-        });
-        //event listener for licence
 
-
-
-        licenseNo.addEventListener('input', function() { 
-            clearError(licenseNoError);
-            if (licenseNo.value.length < 12) {
-                showError(username, licenseNoError, 'Licenseno must be at least 5 characters');
+        // Event listener for phone input
+        phone.addEventListener('input', function () {
+            clearError(phoneError);
+            const phonePattern = /^[0-9]{10}$/;
+            if (!phonePattern.test(phone.value)) {
+                showError(phone, phoneError, 'Phone number must be 10 digits');
             }
         });
 
+        // Event listener for license number input
+        licenseNumber.addEventListener('input', function () {
+            clearError(licenseNumberError);
+            const licenseNumberPattern = /^[A-Z]{2}\d{13}$/; // License number pattern
+            if (!licenseNumberPattern.test(licenseNumber.value)) {
+                showError(licenseNumber, licenseNumberError, 'License number must start with 2 uppercase letters followed by 13 digits');
+            }
+        });
 
-        
-        
-
-
-
-
-
-
-
-
-
-
-
-
-    
         // Event listener for password input
         password.addEventListener('input', function () {
             clearError(passwordError);
@@ -231,7 +228,7 @@
             e.preventDefault();
     
             // Check if there are any error messages still displayed
-            if (emailError.textContent || usernameError.textContent || licenseNoError.textContent || passwordError.textContent || confirmPasswordError.textContent) {
+            if (firstnameError.textContent || lastnameError.textContent || emailError.textContent || phoneError.textContent || licenseNumberError.textContent || passwordError.textContent || confirmPasswordError.textContent) {
                 return; // Prevent form submission if there are errors
             }
     
