@@ -2,7 +2,7 @@ from django.contrib import messages
 from django.contrib.auth import login, authenticate, get_user_model, logout as auth_logout
 from django.http import HttpResponse, JsonResponse
 from django.shortcuts import redirect, render
-from .models import CarOwner, Usertable
+from .models import CarImage, CarOwner, Usertable
 from django.contrib.auth.hashers import check_password
 from django.core.exceptions import ObjectDoesNotExist
 from django.core.mail import send_mail
@@ -11,9 +11,58 @@ from django.contrib.auth.decorators import login_required
 from social_django.models import UserSocialAuth
 from django.contrib.auth.hashers import make_password
 from django.urls import reverse
-def booking(request):
-    return render(request, "booking.html")
+from django.shortcuts import render, redirect
+from .models import Booking  # Import your actual model
+from django.http import HttpResponse
 
+
+def booking(request, car_id,car_owner_id, user_id):
+    car_id = car_id
+    owner = get_object_or_404(CarOwner, venue_name=car_owner_id)
+    client=user_id
+    if request.method == 'POST':
+        # Extract form data from request.POST
+        first_name = request.POST.get('first_name')
+        last_name = request.POST.get('last_name')
+        email = request.POST.get('email')
+        mobile_number = request.POST.get('mobile_number')
+        license_number = request.POST.get('license_number')
+        license_pdf = request.FILES.get('license_pdf')
+        aadhaar_number = request.POST.get('aadhaar_number')
+        aadhaar_pdf = request.FILES.get('aadhaar_pdf')
+        location = request.POST.get('location')
+        start_date = request.POST.get('startDate')
+        end_date = request.POST.get('endDate')
+        special_request = request.POST.get('specialRequest')
+        
+        # Assuming your form has a field named 'car_listing'
+        car_id = request.POST.get('car_id')
+        owner_id = request.POST.get('owner_email')
+        user_id = request.POST.get('user_email')
+        # Create and save your model instance
+        Booking.objects.create(
+            first_name=first_name,
+            last_name=last_name,
+            email=email,
+            mobile_number=mobile_number,
+            license_number=license_number,
+            license_pdf=license_pdf,
+            aadhaar_number=aadhaar_number,
+            aadhaar_pdf=aadhaar_pdf,
+            location=location,
+            start_date=start_date,
+            end_date=end_date,
+            special_request=special_request,
+            car_listing_id=car_id,
+            user_id=user_id,
+            car_owner_id=owner_id,
+            
+              # Associate the booking with a specific car listing
+        )
+
+        return HttpResponse('Booking successful!')  # You can redirect or render another template
+
+    return render(request, 'booking.html', {'car_listing': car_id, 'car_owner': owner, 'user': client})
 def index(request):
     return render(request, "index.html")
 
@@ -49,6 +98,7 @@ def user_login(request):
             user = Usertable.objects.get(email=email)
             if user.is_active and check_password(password, user.password):
                 request.session['email'] = email
+                
                 login(request, user, backend='django.contrib.auth.backends.ModelBackend')
                 
                 # Check the user's role
@@ -87,10 +137,22 @@ def logout(request):
     auth_logout(request)
     return redirect('index')
 
+@login_required
 
 def index2(request):
-    if 'email'or 'usename' in request.session:  # Correct the check for session variable
-        response = render(request, 'index2.html')
+    if 'email'or 'username' in request.session:
+        # Retrieve all cars added by car owners
+        all_cars = CarListing.objects.all()
+
+        # Fetch images for each car
+        for car in all_cars:
+            car.images = CarImage.objects.filter(car=car)
+
+        context = {
+            'all_cars': all_cars,
+        }
+
+        response = render(request, 'index2.html', context)
         response['Cache-Control'] = 'no-store, must-revalidate'
         return response
     else:
@@ -284,11 +346,88 @@ def send_proposal_notification(carowner, proposal_status):
 
     send_mail(subject, message, from_email, recipient_list, fail_silently=False)
 
+from django.shortcuts import render
+from .models import CarOwner, CarListing
+
+from django.shortcuts import render, get_object_or_404
+from django.contrib.auth.decorators import login_required
+
+
+# def index3(request):
+#     # Retrieve the currently logged-in car owner 
+    
+ 
+#     return render(request, 'index3.html')
+
+from django.shortcuts import render, redirect
+from .models import CarListing, CarImage
+
 def index3(request):
-    # This is a sample view for the 'index3' page for car owners.
-    # You can customize this view as per your requirements.
-    return render(request, 'index3.html')
+    if 'email' in request.session:
+        # Retrieve the currently logged-in car owner
+        car_owner = CarOwner.objects.get(email=request.session['email'])
+
+        # Retrieve the cars added by the car owner
+        user_cars = CarListing.objects.filter(car_owner=car_owner)
+
+        # Fetch images for each car
+        for car in user_cars:
+            car.images = CarImage.objects.filter(car=car)
+
+        context = {
+            'user_cars': user_cars,
+        }
+
+        response = render(request, 'index3.html', context)
+        response['Cache-Control'] = 'no-store, must-revalidate'
+        return response
+    else:
+        return redirect('index')
+
+
+
+from django.shortcuts import render, redirect
+from .models import CarListing
+
+
+
+
+
 def addcar(request):
-    # This is a sample view for the 'index3' page for car owners.
-    # You can customize this view as per your requirements.
+    if request.method == 'POST':
+        make = request.POST['make']
+        model = request.POST['model']
+        year = request.POST['year']
+        description = request.POST['description']
+        price = request.POST['price']
+
+        # Handle multiple file uploads
+        images = request.FILES.getlist('images')
+
+        # Get the currently logged-in car owner
+        car_owner = CarOwner.objects.get(email=request.session['email'])
+
+        # Create a new car listing object and save it to the database
+        car = CarListing(
+            car_owner=car_owner,
+            make=make,
+            model=model,
+            year=year,
+            description=description,
+            price=price
+        )
+        car.save()
+
+        # Save images for the car
+        for image in images:
+            CarImage.objects.create(car=car, image=image)
+
+        return redirect('index3')  # Redirect to a car listings page
+
     return render(request, 'addcar.html')
+
+def car_details(request, car_id, user_id):
+    car = get_object_or_404(CarListing, pk=car_id)
+    car_images = CarImage.objects.filter(car=car)
+    context = {'car': car, 'car_images': car_images , 'user':user_id}
+    return render(request, 'car_details.html', context)

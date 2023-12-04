@@ -64,6 +64,7 @@ class CarOwner(models.Model):
 
 
 class CarListing(models.Model):
+    car_owner = models.ForeignKey(CarOwner, on_delete=models.CASCADE)
     make = models.CharField(max_length=100)
     model = models.CharField(max_length=100)
     year = models.PositiveIntegerField()
@@ -73,3 +74,47 @@ class CarListing(models.Model):
 
     def __str__(self):
         return f"{self.year} {self.make} {self.model}"
+    
+class CarImage(models.Model):
+    car = models.ForeignKey(CarListing, on_delete=models.CASCADE)
+    image = models.ImageField(upload_to='car_images/')
+
+    def __str__(self):
+        return f"Image for {self.car}"
+class Booking(models.Model):
+    PENDING = 'Pending'
+    ACCEPTED = 'Accepted'
+    REJECTED = 'Rejected'
+    STATUS_CHOICES = [
+        (PENDING, 'Pending'),
+        (ACCEPTED, 'Accepted'),
+        (REJECTED, 'Rejected'),
+    ]
+
+    car_owner = models.ForeignKey(CarOwner, on_delete=models.CASCADE)
+    user = models.ForeignKey(Usertable, on_delete=models.CASCADE)
+    car_listing = models.ForeignKey(CarListing, on_delete=models.CASCADE)
+    status = models.CharField(max_length=10, choices=STATUS_CHOICES, default=PENDING)
+    start_date = models.DateField()
+    end_date = models.DateField()
+    special_request = models.TextField()
+
+    # Personal Details
+    first_name = models.CharField(max_length=100)
+    last_name = models.CharField(max_length=100)
+    email = models.EmailField()
+    mobile_number = models.CharField(max_length=15)
+
+    # License Details
+    license_number = models.CharField(max_length=20)
+    license_pdf = models.FileField(upload_to='license_pdfs/')
+
+    # Aadhaar Details
+    aadhaar_number = models.CharField(max_length=20)
+    aadhaar_pdf = models.FileField(upload_to='aadhaar_pdfs/')
+
+    # New Location Field
+    location = models.CharField(max_length=255, default='') # You can adjust the field type accordingly
+
+    def __str__(self):
+        return f"Booking for {self.car_listing} by {self.user.email}"
