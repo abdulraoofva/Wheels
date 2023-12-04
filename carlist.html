@@ -1,0 +1,32 @@
+<!-- car_list.html -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Car Listings</title>
+    <!-- Add Bootstrap CSS link or include it from your local installation -->
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+</head>
+<body>
+    <div class="container mt-5">
+        <h1>Car Listings</h1>
+        <ul class="list-group">
+            {% for car in cars %}
+                <li class="list-group-item">
+                    <h4>{{ car.year }} {{ car.make }} {{ car.model }}</h4>
+                    <p>Description: {{ car.description }}</p>
+                    <p>Price: ${{ car.price }}</p>
+                    <!-- Add logic to display car images if needed -->
+                </li>
+            {% endfor %}
+        </ul>
+        <a href="{% url 'addcar' %}" class="btn btn-primary mt-3">Add a Car</a>
+    </div>
+
+    <!-- Add Bootstrap JS and jQuery scripts if needed -->
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.3/dist/umd/popper.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+</body>
+</html>
