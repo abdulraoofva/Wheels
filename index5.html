@@ -1,0 +1,17 @@
+{% load static %}
+<a href="{% url "addcar" %}" class="nav-item nav-link active">Add Cars</a>
+
+<h1 >Your Cars</h1>
+    {% for car in user_cars %}
+                {% if car.images %}
+                    {% for image in car.images %}
+                        <img  src="{{ image.image.url }}" alt="{{ car.make }} {{ car.model }}">
+                    {% endfor %}
+                {% else %}
+                    <p>No image available</p>
+                {% endif %}
+                <h4 >{{ car.make }} {{ car.model }}</h4>
+                        <span>{{ car.year }}</span>
+                    <!-- Add other car details as needed -->
+                <a href="#">View Details</a>
+    {% endfor %}

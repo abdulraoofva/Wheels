@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Add Car Accessories</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+        }
+
+        form {
+            max-width: 600px;
+            margin: 50px auto;
+            padding: 20px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 10px;
+        }
+
+        input[type="text"], input[type="number"], input[type="file"], textarea {
+            width: 100%;
+            padding: 10px;
+            margin-bottom: 20px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            box-sizing: border-box;
+        }
+
+        textarea {
+            height: 100px;
+        }
+
+        input[type="submit"] {
+            background-color: #007bff;
+            color: #fff;
+            border: none;
+            padding: 10px 20px;
+            cursor: pointer;
+            border-radius: 5px;
+        }
+
+        input[type="submit"]:hover {
+            background-color: #0056b3;
+        }
+    </style>
+</head>
+<body>
+
+<h1>Add Car Accessories</h1>
+
+<form method="post" enctype="multipart/form-data" action="{% url 'addtools' %}">
+    {% csrf_token %}
+    
+    <label for="name">Accessory Name:</label>
+    <input type="text" id="name" name="name" required>
+
+    <label for="accessory_id">Accessory ID/Code:</label>
+    <input type="text" id="accessory_id" name="accessory_id" required>
+
+    <label for="category">Category:</label>
+    <input type="text" id="category" name="category" required>
+
+    <label for="price">Price:</label>
+    <input type="number" id="price" name="price" required>
+
+    <label for="compatibility">Compatibility:</label>
+    <input type="text" id="compatibility" name="compatibility" required>
+
+    <label for="quantity_available">Quantity Available:</label>
+    <input type="number" id="quantity_available" name="quantity_available" required>
+
+    <label for="description">Description:</label>
+    <textarea id="description" name="description" required></textarea>
+
+    <label for="thumbnail">Thumbnail Image:</label>
+    <input type="file" id="thumbnail" name="thumbnail" accept="image/*" required>
+
+    <label for="images">Images:</label>
+    <input type="file" id="images" name="images" accept="image/*" multiple required>
+
+    <label for="installation_requirements">Installation Requirements:</label>
+    <textarea id="installation_requirements" name="installation_requirements" required></textarea>
+
+    <label for="manufacturer">Manufacturer/Brand:</label>
+    <input type="text" id="manufacturer" name="manufacturer" required>
+
+    <label for="material">Material/Construction:</label>
+    <input type="text" id="material" name="material" required>
+
+    <label for="dimensions_weight">Dimensions/Weight:</label>
+    <input type="text" id="dimensions_weight" name="dimensions_weight" required>
+
+    <input type="submit" value="Add Accessory">
+</form>
+
+</body>
+</html>
