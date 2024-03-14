@@ -140,7 +140,7 @@ def logout(request):
 @login_required
 
 def index2(request):
-    if 'email'or 'username' in request.session:
+    if 'email' in request.session or 'username' in request.session:
         # Retrieve all cars added by car owners
         all_cars = CarListing.objects.all()
 
@@ -148,8 +148,12 @@ def index2(request):
         for car in all_cars:
             car.images = CarImage.objects.filter(car=car)
 
+        # Retrieve email from session
+        user_email = request.session.get('email', None)
+
         context = {
             'all_cars': all_cars,
+            'user_email': user_email,  # Add user_email to the context
         }
 
         response = render(request, 'index2.html', context)
@@ -167,8 +171,14 @@ def check_user_exists(request):
 
 from .models import CarOwner
 
+from django.contrib.auth.hashers import make_password
+from django.core.mail import send_mail
+from django.template.loader import render_to_string
+from django.utils.html import strip_tags
+
 def adminreg(request):
     if request.method == 'POST':
+        # Handle user status update
         for user in Usertable.objects.exclude(is_superuser=True):
             status_field_name = f'user_status_{user.email}'
             user_status = request.POST.get(status_field_name, '')
@@ -179,53 +189,69 @@ def adminreg(request):
                     user.save()
                     send_activation_email(user)
                 else:
-                    continue  # Skip the rest of the loop if the user is already active
+                    continue
             else:
                 if user.is_active:
                     user.is_active = False
                     user.save()
                     send_deactivation_email(user)
                 else:
-                    continue  # Skip the rest of the loop if the user is already inactive
+                    continue
 
+        # Handle car owner proposal status update
         for carowner in CarOwner.objects.all():
             status_field_name = f'proposal_status_{carowner.email}'
             proposal_status = request.POST.get(status_field_name, 'Pending')
 
             if proposal_status == 'Accepted' and carowner.proposal_status != 'Accepted':
-                # Generate a random password for the car owner
-                import random
-                import string
-                password = ''.join(random.choice(string.ascii_letters + string.digits) for _ in range(12))
-                # Set the hashed password for the CarOwner
+                # Generate random password for the car owner
+                password = generate_random_password()
+                # Set hashed password for the CarOwner
                 carowner.password = make_password(password)
                 carowner.save()
-                
-                # Send an email to the car owner with their password
+
+                # Send password and proposal notification email to car owner
                 send_password_email(carowner, password)
                 send_proposal_notification(carowner, proposal_status)
             elif proposal_status != 'Accepted':
-                # Reset the password_generated flag if the proposal status is not 'Accepted'
                 carowner.password_generated = False
                 carowner.save()
 
             carowner.proposal_status = proposal_status
             carowner.save()
 
+        # Handle driver registration
+        if 'update_drivers_status' in request.POST:
+            for driver in Driver.objects.all():
+                status_field_name = f'driver_status_{driver.email}'
+                driver_status = request.POST.get(status_field_name, '')
+
+                if driver_status == 'on':
+                    if not driver.status == 'Accepted':
+                        driver.status = 'Accepted'
+                        driver.save()
+                        send_driver_password_email(driver)
+                else:
+                    if driver.status == 'Accepted':
+                        driver.status = 'Rejected'
+                        driver.save()
+
     admin_users = Usertable.objects.filter(role='admin')
     normal_users = Usertable.objects.filter(role='normal_user')
     club_users = Usertable.objects.filter(role='club_user')
-
     car_owners = CarOwner.objects.all()
+    drivers = Driver.objects.all()
 
     context = {
         'admin_users': admin_users,
         'normal_users': normal_users,
         'club_users': club_users,
         'car_owners': car_owners,
+        'drivers': drivers,
     }
 
     return render(request, 'adminreg.html', context)
+
 
 
 def send_password_email(carowner, password):
@@ -282,6 +308,8 @@ def update_user_details(request):
     return render(request, 'userprofile.html')
 def owners(request):
     return render(request, "owners.html")
+def driverreg(request):
+    return render(request, "driverreg.html")
 
 def google_authenticate(request):
     # Handle the Google OAuth2 authentication process
@@ -425,9 +453,337 @@ def addcar(request):
         return redirect('index3')  # Redirect to a car listings page
 
     return render(request, 'addcar.html')
-
+@login_required
 def car_details(request, car_id, user_id):
     car = get_object_or_404(CarListing, pk=car_id)
     car_images = CarImage.objects.filter(car=car)
     context = {'car': car, 'car_images': car_images , 'user':user_id}
     return render(request, 'car_details.html', context)
+from .models import CarAccessory, AccessoryImage
+@login_required
+def addtools(request):
+    if request.method == 'POST':
+        # Extract data from the form
+        name = request.POST.get('name')
+        accessory_id = request.POST.get('accessory_id')
+        category = request.POST.get('category')
+        price = request.POST.get('price')
+        compatibility = request.POST.get('compatibility')
+        quantity_available = request.POST.get('quantity_available')
+        description = request.POST.get('description')
+        installation_requirements = request.POST.get('installation_requirements')
+        manufacturer = request.POST.get('manufacturer')
+        material = request.POST.get('material')
+        dimensions_weight = request.POST.get('dimensions_weight')
+        thumbnail = request.FILES.get('thumbnail')
+        images = request.FILES.getlist('images')
+
+        # Create a CarAccessory instance
+        accessory = CarAccessory.objects.create(
+            name=name,
+            accessory_id=accessory_id,
+            category=category,
+            price=price,
+            compatibility=compatibility,
+            quantity_available=quantity_available,
+            description=description,
+            installation_requirements=installation_requirements,
+            manufacturer=manufacturer,
+            material=material,
+            dimensions_weight=dimensions_weight,
+            thumbnail=thumbnail
+        )
+
+        # Create AccessoryImage instances for each image
+        for image in images:
+            AccessoryImage.objects.create(accessory=accessory, image=image)
+
+        # Redirect to a success page or do something else
+        return redirect('adminreg')  # Replace 'success' with the name of your success URL pattern
+
+    return render(request, 'addtools.html')
+from django.contrib.auth.decorators import login_required
+
+@login_required
+def shop(request, user_email):
+    # Retrieve all car accessories from the database
+    accessories = CarAccessory.objects.all()
+    context = {'accessories': accessories, 'user_email': user_email}
+    return render(request, 'shop.html', context)
+
+@login_required
+def accessory_details(request, accessory_id, user_email):
+    # Retrieve the accessory object
+    accessory = get_object_or_404(CarAccessory, pk=accessory_id)
+    
+    # Pass accessory and user_email to the template context
+    context = {
+        'accessory': accessory,
+        'user_email': user_email,
+    }
+    return render(request, 'accessory_details.html', context)
+
+# views.py
+
+from django.shortcuts import render, redirect
+from .models import Driver
+
+def driverreg(request):
+    if request.method == 'POST':
+        driver_name = request.POST.get('driver_name')
+        email = request.POST.get('email')
+        contact_number = request.POST.get('contact_number')
+        driver_license = request.FILES.get('driver_license')
+        conduct_certificate = request.FILES.get('conduct_certificate')
+        address = request.POST.get('address')
+        location = request.POST.get('location')
+        district = request.POST.get('district')
+        photo = request.FILES.get('photo')
+
+        driver = Driver.objects.create(
+            driver_name=driver_name,
+            email=email,
+            contact_number=contact_number,
+            driver_license=driver_license,
+            conduct_certificate=conduct_certificate,
+            address=address,
+            location=location,
+            district=district,
+            photo=photo
+        )
+        return redirect('registration_success')  # Assuming you have a URL named 'registration_success'
+
+    return render(request, 'driverreg.html')
+# views.py
+
+from django.shortcuts import render, redirect
+
+def submit_registration(request):
+    # Your code to handle form submission and insert data into the database
+    return redirect('registration_success')  # Redirect to a success page after successful submission
+
+# views.py
+
+from django.http import HttpResponse
+
+def registration_success(request):
+    return HttpResponse("Registration successful. Thank you!")
+    
+def addtocart(request):
+    return render(request, "addtocart.html")
+
+
+
+
+
+
+# views.py
+
+from django.shortcuts import render, redirect, get_object_or_404
+from .models import CartItem
+
+from django.shortcuts import redirect, get_object_or_404
+from .models import CartItem, CarAccessory
+
+def add_to_cart(request, accessory_id):
+    # Get the accessory object using the accessory_id
+    accessory = get_object_or_404(CarAccessory, pk=accessory_id)
+
+    # Check if the user already has the item in the cart
+    user_cart_item, created = CartItem.objects.get_or_create(user=request.user, product=accessory)
+
+    if not created:
+        # If the cart item already exists, check if its quantity is less than 4
+        if user_cart_item.quantity < 4:
+            # Increment the quantity by 1 if it's less than 4
+            user_cart_item.quantity += 1
+            user_cart_item.save()
+        else:
+            # If the quantity is already 4, show a message and do not update the quantity
+            messages.warning(request, 'You can only add up to 4 quantities of this item.')
+
+    return redirect('cart')
+
+
+def remove_from_cart(request, item_id):
+    # Retrieve the cart item
+    cart_item = get_object_or_404(CartItem, pk=item_id)
+
+    # Decrease the quantity by one
+    cart_item.quantity -= 1
+
+    # Save the cart item if quantity is greater than zero, otherwise delete it
+    if cart_item.quantity > 0:
+        cart_item.save()
+    else:
+        cart_item.delete()
+
+    # Redirect back to the cart page
+    return redirect('cart')
+
+def view_cart(request):
+    # Get cart items for the current user
+    cart_items = CartItem.objects.filter(user=request.user)
+
+    context = {
+        'cart_items': cart_items,
+    }
+
+    return render(request, 'cart.html', context)
+
+
+from django.http import JsonResponse
+from django.shortcuts import get_object_or_404
+from .models import CartItem
+def update_cart(request, item_id, quantity):
+    cart_item = get_object_or_404(CartItem, pk=item_id)
+    cart_item.quantity = quantity
+    cart_item.save()
+
+    return JsonResponse({'quantity': cart_item.quantity, 'subtotal': cart_item.subtotal})
+
+from django.shortcuts import render
+from .models import Wishlist
+
+def wishlist(request):
+    # Retrieve the wishlist items for the current user
+    user_email = request.user.email
+    wishlist_items = Wishlist.objects.filter(user=request.user)
+
+    # Pass wishlist items and user_email to the template context
+    context = {
+        'wishlist_items': wishlist_items,
+        'user_email': user_email,
+    }
+    return render(request, 'wishlist.html', context)
+
+from django.shortcuts import redirect, get_object_or_404
+from .models import CarAccessory, Wishlist
+
+from django.shortcuts import get_object_or_404
+
+from django.shortcuts import get_object_or_404
+@login_required
+def add_to_wishlist(request, accessory_id):
+    if request.method == 'POST':
+        # Assuming you have a logged-in user
+        user = request.user
+        accessory = get_object_or_404(CarAccessory, id=accessory_id)
+        
+        # Get or create the user's wishlist
+        wishlist, created = Wishlist.objects.get_or_create(user=user, product=accessory)
+        
+        return redirect('wishlist')  # Redirect to the wishlist page
+    else:
+        return redirect('cart')
+    
+
+   
+from .models import Wishlist
+
+def remove_from_wishlist(request, wishlist_id):
+    if request.method == 'POST':
+        wishlist_item = Wishlist.objects.get(id=wishlist_id)
+        wishlist_item.delete()
+        return redirect('wishlist')
+    else:
+        return redirect('wishlist')
+    
+
+
+
+
+
+
+from django.shortcuts import render, redirect
+from .models import CartItem, Checkout
+
+from django.shortcuts import render, redirect
+from .models import CartItem, Checkout
+
+def checkout(request):
+    if request.method == 'POST':
+        # Retrieve the user's cart items
+        cart_items = CartItem.objects.filter(user=request.user)
+        
+        # Calculate total price
+        total_price = sum(item.subtotal for item in cart_items)
+
+        # Extract shipping information from the form
+        full_name = request.POST.get('full_name')
+        address_line_1 = request.POST.get('address_line_1')
+        address_line_2 = request.POST.get('address_line_2', '')  # Optional field
+        city = request.POST.get('city')
+        state = request.POST.get('state')
+        pin_code = request.POST.get('pin_code')
+        phone_number = request.POST.get('phone_number')
+
+        # Save checkout information
+        checkout = Checkout.objects.create(
+            user=request.user,
+            full_name=full_name,
+            address_line_1=address_line_1,
+            address_line_2=address_line_2,
+            city=city,
+            state=state,
+            pin_code=pin_code,
+            phone_number=phone_number
+        )
+
+        # You can associate each cart item with this checkout instance if needed
+        for item in cart_items:
+            item.checkout = checkout
+            item.save()
+
+        # Redirect to order confirmation page
+        return redirect('order_confirmation')  # Redirect to the order confirmation page
+    else:
+        # If the request method is GET, retrieve cart items and calculate total price
+        cart_items = CartItem.objects.filter(user=request.user)
+        total_price = sum(item.subtotal for item in cart_items)
+
+        # Pass cart items and total price to the template
+        context = {
+            'cart_items': cart_items,
+            'total_price': total_price,
+        }
+
+        return render(request, 'checkout.html', context)
+
+    
+
+from django.shortcuts import render
+from .models import Checkout
+
+from django.shortcuts import render
+from .models import Checkout
+
+from django.shortcuts import render, redirect
+from django.contrib import messages
+from .models import Checkout
+
+def order_confirmation(request):
+    try:
+        # Retrieve the latest checkout information for the user
+        latest_checkout = Checkout.objects.filter(user=request.user).latest('created_at')
+        
+        # Retrieve checkout items associated with the latest checkout
+        checkout_items = latest_checkout.items.all()
+
+        # Calculate total price from checkout items
+        total_price = sum(item.subtotal for item in checkout_items)
+
+        context = {
+            'checkout': latest_checkout,
+            'checkout_items': checkout_items,
+            'total_price': total_price,
+        }
+        return render(request, 'order_confirmation.html', context)
+    except Checkout.DoesNotExist:
+        messages.error(request, "No checkout information found. Please complete the checkout process first.")
+        return redirect('cart')  # Redirect to the cart page
+
+
+
+
+

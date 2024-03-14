@@ -118,3 +118,116 @@ class Booking(models.Model):
 
     def __str__(self):
         return f"Booking for {self.car_listing} by {self.user.email}"
+    
+
+
+class CarAccessory(models.Model):
+    name = models.CharField(max_length=100)
+    accessory_id = models.CharField(max_length=50, unique=True)
+    category = models.CharField(max_length=100)
+    price = models.DecimalField(max_digits=10, decimal_places=2)
+    compatibility = models.CharField(max_length=100)
+    quantity_available = models.PositiveIntegerField()
+    description = models.TextField()
+    installation_requirements = models.TextField()
+    manufacturer = models.CharField(max_length=100)
+    material = models.CharField(max_length=100)
+    dimensions_weight = models.CharField(max_length=100)
+    is_available = models.BooleanField(default=True)
+    thumbnail = models.ImageField(upload_to='accessory_thumbnails/')
+
+    def __str__(self):
+        return self.name
+
+class AccessoryImage(models.Model):
+    accessory = models.ForeignKey(CarAccessory, related_name='images', on_delete=models.CASCADE)
+    image = models.ImageField(upload_to='accessory_images/')
+
+    def __str__(self):
+        return f"Image for {self.accessory.name}"
+    
+    # models.py
+
+from django.db import models
+
+class Driver(models.Model):
+    driver_name = models.CharField(max_length=100)
+    email = models.EmailField()
+    contact_number = models.CharField(max_length=15)
+    driver_license = models.FileField(upload_to='driver_licenses/')
+    conduct_certificate = models.FileField(upload_to='conduct_certificates/')
+    address = models.TextField()
+    location = models.CharField(max_length=100)
+    district = models.CharField(max_length=100)
+    photo = models.ImageField(upload_to='driver_photos/', blank=True, null=True)
+
+    def __str__(self):
+        return self.driver_name
+    
+
+    from django.db import models
+from django.contrib.auth.models import User
+from .models import CarAccessory
+
+from django.db import models
+from django.contrib.auth.models import User
+
+from django.db import models
+from django.contrib.auth.models import User
+from django.conf import settings
+
+class CartItem(models.Model):
+    user = models.ForeignKey(Usertable, on_delete=models.CASCADE)
+    product = models.ForeignKey('CarAccessory', on_delete=models.CASCADE)
+    quantity = models.PositiveIntegerField(default=1)
+    subtotal = models.DecimalField(max_digits=10, decimal_places=2, default=0)
+
+    def __str__(self):
+        return f"{self.user.username}'s cart item: {self.product.name}"
+
+    def save(self, *args, **kwargs):
+        # Calculate subtotal before saving
+        self.subtotal = self.product.price * self.quantity
+        super().save(*args, **kwargs)
+
+from django.db import models
+from .models import CarAccessory, Usertable
+
+class Wishlist(models.Model):
+    user = models.ForeignKey(Usertable, on_delete=models.CASCADE)
+    product = models.ForeignKey('CarAccessory', on_delete=models.CASCADE)
+
+    def __str__(self):
+        return f"Wishlist for {self.user.email}"
+    
+
+
+from django.db import models
+from django.contrib.auth.models import User
+
+class Checkout(models.Model):
+    user = models.ForeignKey(Usertable, on_delete=models.CASCADE)
+    full_name = models.CharField(max_length=255)
+    address_line_1 = models.CharField(max_length=255)
+    address_line_2 = models.CharField(max_length=255, blank=True, null=True)
+    city = models.CharField(max_length=100)
+    state = models.CharField(max_length=100)
+    pin_code = models.CharField(max_length=10)
+    phone_number = models.CharField(max_length=15)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"Checkout for {self.user.email}"
+
+class CheckoutItem(models.Model):
+    checkout = models.ForeignKey(Checkout, related_name='items', on_delete=models.CASCADE)
+    product = models.ForeignKey('CarAccessory', on_delete=models.CASCADE)
+    quantity = models.PositiveIntegerField(default=1)
+    subtotal = models.DecimalField(max_digits=10, decimal_places=2)
+
+    def __str__(self):
+        return f"{self.quantity} x {self.product.name} in {self.checkout}"
+
+
+
+

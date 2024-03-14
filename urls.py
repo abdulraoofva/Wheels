@@ -5,6 +5,14 @@ from . import views
 from django.urls import path, include
 from django.conf import settings
 from django.conf.urls.static import static
+# urls.py
+
+
+
+
+    
+    # Add other URLs as needed
+
 
 urlpatterns = [
     path('', index, name="index"),
@@ -28,5 +36,23 @@ urlpatterns = [
     path('addcar/', addcar, name="addcar"), 
     path('car_details/<int:car_id>/', car_details, name='car_details'),
     path('booking/<int:car_id>/<str:car_owner_id>/<str:user_id>/', booking, name='booking'),
+    path('driverreg/', driverreg, name="driverreg"),
+    path('addtools/', addtools, name="addtools"),
+    path('shop/<str:user_email>/', shop, name="shop"),
+   path('accessory_details/<int:accessory_id>/<str:user_email>/', accessory_details, name='accessory_details'),
     path('car_details/<int:car_id>/<str:user_id>/', views.car_details, name='car_details'),# Add URL pattern for index3
+     path('submit-registration/', views.submit_registration, name='submit_registration'),
+     path('registration-success/', views.registration_success, name='registration_success'),
+     
+
+    path('add_to_cart/<int:accessory_id>/', views.add_to_cart, name='add_to_cart'),
+    path('update_cart/<int:item_id>/<int:quantity>/', views.update_cart, name='update_cart'),
+    path('remove_from_cart/<int:item_id>/', views.remove_from_cart, name='remove_from_cart'),
+  path('wishlist/', views.wishlist, name='wishlist'),
+    path('cart/', views.view_cart, name='cart'),
+    # path('checkout/', views.checkout, name='checkout'),
+    path('add_to_wishlist/<int:accessory_id>/', views.add_to_wishlist, name='add_to_wishlist'),
+    path('remove_from_wishlist/<int:wishlist_id>/', views.remove_from_wishlist, name='remove_from_wishlist'),
+    path('checkout/', views.checkout, name='checkout'),
+    path('order_confirmation/', views.order_confirmation, name='order_confirmation'),
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
