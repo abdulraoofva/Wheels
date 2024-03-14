@@ -1,0 +1,66 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>Wishlist</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="{% static 'css/bootstrap.min.css' %}" rel="stylesheet">
+    <link href="{% static 'css/style.css' %}" rel="stylesheet">
+    <style>
+        .rent-item img {
+            height: 200px; /* Adjust the height as needed */
+            object-fit: cover; /* Ensure the image covers the entire space */
+        }
+    </style>
+</head>
+<body>
+    <!-- Navbar Start -->
+    <div class="container-fluid bg-secondary py-3">
+        <div class="row">
+            <div class="col-md-6 text-center text-md-left mb-2 mb-md-0">
+                <a class="text-body pr-3" href="#"><i class="fa fa-phone-alt mr-2"></i>+012 345 6789</a>
+                <span class="text-body">|</span>
+                <a class="text-body px-3" href="#"><i class="fa fa-envelope mr-2"></i>info@example.com</a>
+            </div>
+            <div class="col-md-6 text-center text-md-right">
+                <a class="text-body px-3" href="#"><i class="fab fa-facebook-f"></i></a>
+                <a class="text-body px-3" href="#"><i class="fab fa-twitter"></i></a>
+                <a class="text-body px-3" href="#"><i class="fab fa-linkedin-in"></i></a>
+                <a class="text-body px-3" href="#"><i class="fab fa-instagram"></i></a>
+                <a class="text-body px-3" href="#"><i class="fab fa-youtube"></i></a>
+            </div>
+        </div>
+    </div>
+    <!-- Navbar End -->
+
+    <!-- Wishlist Content -->
+    <div class="container py-5">
+        <div class="container pt-5 pb-3">
+            <h1 class="display-4 text-uppercase text-center mb-5">Wishlist</h1>
+            <div class="row" id="wishlistItems">
+                {% for item in wishlist_items %}
+                <div class="col-lg-4 col-md-6 mb-4 rent-item">
+                    <div class="mb-4">
+                        <img class="img-fluid mb-3" src="{{ item.product.thumbnail.url }}" alt="{{ item.product.name }}">
+                        <h4 class="text-uppercase mb-3">{{ item.product.name }}</h4>
+                        <div class="text-center mb-3">
+                            <a class="btn btn-primary px-3" href="{% url 'accessory_details' item.product.id user_email %}">View Details</a>
+                        </div>
+                        <form action="{% url 'remove_from_wishlist' item.id %}" method="post">
+                            {% csrf_token %}
+                            <button type="submit" class="btn btn-danger px-4">Remove</button>
+                        </form>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+    
+    <!-- Add Bootstrap JS and jQuery scripts if needed -->
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.3/dist/umd/popper.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+</body>
+</html>

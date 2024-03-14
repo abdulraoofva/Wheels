@@ -1,0 +1,100 @@
+{% load static %}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Checkout</title>
+    <link rel="stylesheet" href="{% static 'css/bootstrap.min.css' %}">
+    <style>
+        /* Custom CSS styles */
+        .container {
+            margin-top: 50px;
+        }
+        .card {
+            margin-bottom: 20px;
+        }
+        .card-header {
+            background-color: #f8f9fa;
+            font-weight: bold;
+        }
+        .form-control {
+            margin-bottom: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1 class="text-center mb-5">Checkout</h1>
+        <div class="row">
+            <!-- Left side: Cart Summary -->
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-header">Cart Summary</div>
+                    <div class="card-body">
+                        <ul class="list-group">
+                            <!-- Iterate over cart items and display details -->
+                            {% for item in cart_items %}
+                                <li class="list-group-item">
+                                    <span class="fw-bold">{{ item.product.name }}</span><br>
+                                    Quantity: {{ item.quantity }}<br>
+                                    Price: ${{ item.product.price }}<br>
+                                    Subtotal: ${{ item.subtotal }}
+                                </li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                    <div class="card-footer text-end">
+                        <strong>Total Price: ${{ total_price }}</strong>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right side: Shipping Information Form -->
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-header">Shipping Information</div>
+                    <div class="card-body">
+                        <form method="post">
+                            {% csrf_token %}
+                            <div class="mb-3">
+                                <label for="full_name" class="form-label">Full Name:</label>
+                                <input type="text" id="full_name" name="full_name" class="form-control" required>
+                            </div>
+                            <div class="mb-3">
+                                <label for="address_line_1" class="form-label">Address Line 1:</label>
+                                <input type="text" id="address_line_1" name="address_line_1" class="form-control" required>
+                            </div>
+                            <div class="mb-3">
+                                <label for="address_line_2" class="form-label">Address Line 2:</label>
+                                <input type="text" id="address_line_2" name="address_line_2" class="form-control">
+                            </div>
+                            <div class="mb-3">
+                                <label for="city" class="form-label">City:</label>
+                                <input type="text" id="city" name="city" class="form-control" required>
+                            </div>
+                            <div class="mb-3">
+                                <label for="state" class="form-label">State:</label>
+                                <input type="text" id="state" name="state" class="form-control" required>
+                            </div>
+                            <div class="mb-3">
+                                <label for="pin_code" class="form-label">Pin Code:</label>
+                                <input type="text" id="pin_code" name="pin_code" class="form-control" required>
+                            </div>
+                            <div class="mb-3">
+                                <label for="phone_number" class="form-label">Phone Number:</label>
+                                <input type="text" id="phone_number" name="phone_number" class="form-control" required>
+                            </div>
+                            <button type="submit" class="btn btn-primary">Place Order</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="{% static 'js/bootstrap.bundle.min.js' %}"></script>
+    <!-- Add your custom JavaScript scripts if needed -->
+</body>
+</html>

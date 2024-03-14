@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Order Confirmation</title>
+</head>
+<body>
+    <h1>Order Confirmation</h1>
+    <h2>Shipping Information:</h2>
+    <p>Full Name: {{ checkout.full_name }}</p>
+    <p>Address Line 1: {{ checkout.address_line_1 }}</p>
+    <p>Address Line 2: {{ checkout.address_line_2 }}</p>
+    <p>City: {{ checkout.city }}</p>
+    <p>State: {{ checkout.state }}</p>
+    <p>Pin Code: {{ checkout.pin_code }}</p>
+    <p>Phone Number: {{ checkout.phone_number }}</p>
+
+    <h2>Items to Confirm:</h2>
+    <table>
+        <thead>
+            <tr>
+                <th>Accessory</th>
+                <th>Price</th>
+                <th>Quantity</th>
+                <th>Subtotal</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for item in checkout_items %}
+                <tr>
+                    <td>{{ item.product.name }}</td>
+                    <td>Rs{{ item.product.price }}</td>
+                    <td>{{ item.quantity }}</td>
+                    <td>Rs{{ item.subtotal }}</td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    <form action="" method="post">
+        {% csrf_token %}
+        <button type="submit">Confirm to Payment</button>
+    </form>
+</body>
+</html>
